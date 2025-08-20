@@ -1,86 +1,157 @@
-"""
-Group Name: DAN/EXT 28
-
-Group Members:
-Fateen Rahman – S387983
-Hendrick Dang – S395598
-Kevin Zhu – S387035
-Mehraab Ferdouse – S393148
-"""
+# A dictionary to store the encrypted characters and their corresponding original characters
+encryption_map = {}  
+# A dictionary to count repeated encrypted characters (as multiple characters can have the same encrypted character)
+encrypted_counts = {}  
+# A dictionary to store decrypted characters and their counts
+decrypted_counts = {}
 
 
-def enc(ch, s1, s2):
-    if ch.islower():
-        
-        if ch < 'n':      
-            shift = s1 * s2
-            return chr((ord(ch) - 97 + shift) % 26 + 97)
-        else:            
-            shift = s1 + s2
-            return chr((ord(ch) - 97 - shift) % 26 + 97)
 
-    elif ch.isupper():
-      
-        if ch < 'N':     
-            shift = s1
-            return chr((ord(ch) - 65 - shift) % 26 + 65)
-        else:            
-            shift = s2 * s2
-            return chr((ord(ch) - 65 + shift) % 26 + 65)
+def shift_input():
+    """
+    Prompts the user for two shift values between 1 and 9
+    This ensures that the encrypted characters are not out of the specified ASCII range
+    """
+    
+    # While the user does not enter a valid integer between 1 and 9, the program will keep asking for an input for shift1
+    while True:
+        try:
+            shift1 = int(input("Enter the shift value (1-9): "))
+            if 1 <= shift1 <= 9:
+                break
+            else:
+                print("Shift value must be between 1 and 9")
+        except ValueError:
+            print("Please enter a valid integer.")
+
+    # While the user does not enter a valid integer between 1 and 9, the program will keep asking for an input for shift2
+    while True:
+        try:
+            shift2 = int(input("Enter the second shift value (1-9): "))
+            if 1 <= shift2 <= 9:
+                break
+            else:
+                print("Second shift value must be between 1 and 9")
+        except ValueError:
+            print("Please enter a valid integer.")
+            
+    # Returns the two shift values
+    return shift1, shift2
+
+
+
+def encrypt_char(char, shift1, shift2):
+    """
+    Encrypts a single character using the specified shift values.
+    Encrypted_counts keeps track of how many times each encrypted character has appeared.
+    Encryption_map stores the encrypted characters along with a count suffix as the key and their corresponding original characters as the value.
+    """
+    
+    # Calculates the encrypted character based on the ASCII value and the shift values
+    o = ord(char)
+    if 'a' <= char <= 'm':        
+        encrypted_char = chr(o + shift1*shift2)
+    elif 'n' <= char <= 'z':      
+        encrypted_char = chr(o - shift1*shift2)
+    elif 'A' <= char <= 'M':      
+        encrypted_char = chr(o - shift1)
+    elif 'N' <= char <= 'Z':      
+        encrypted_char = chr(o + (shift2**2))
     else:
-        
-        return ch
+        encrypted_char = char
 
-def dec(ch, s1, s2):
-    if ch.islower():
-        if ch < 'n':
-            shift = s1 * s2
-            return chr((ord(ch) - 97 - shift) % 26 + 97)
-        else:
-            shift = s1 + s2
-            return chr((ord(ch) - 97 + shift) % 26 + 97)
+    # Counts duplicates and adds a suffix to the encrypted character
+    count = encrypted_counts.get(encrypted_char, 0) + 1
+    # Adds the encrypted character into the encrypted_counts dictionary and the amount of times it has appeared as the value
+    encrypted_counts[encrypted_char] = count
 
-    elif ch.isupper():
-        if ch < 'N':
-            shift = s1
-            return chr((ord(ch) - 65 + shift) % 26 + 65)
-        else:
-            shift = s2 * s2
-            return chr((ord(ch) - 65 - shift) % 26 + 65)
-    else:
-        return ch
+    # Adds encrypted character along with suffix to encryption_map, and the original character as the value
+    key = f"{encrypted_char}{count}"  # e.g., 'x1', 'x2'
+    encryption_map[key] = char
 
-def encrypt_file(s1, s2):
-    with open("raw_text.txt","r") as f:
-        plain = f.read()
-    encrypted = ""
-    for c in plain:
-      encrypted += enc(c, s1, s2)
-    with open("encrypted_text.txt","w") as f:
-        f.write(encrypted)
+    # Returns the encrypted character
+    return encrypted_char
 
-def decrypt_file(s1, s2):
-    with open("encrypted_text.txt","r") as f:
-        encrypted = f.read()
-    decrypted = ""
-    for c in encrypted:
-      decrypted += dec(c, s1, s2)
-    with open("decrypted_text.txt","w") as f:
-        f.write(decrypted)
 
-def verify():
-    with open("raw_text.txt") as f1, open("decrypted_text.txt") as f2:
-        if f1.read() == f2.read():
-            print("Decryption successful!")
-        else:
-            print("Decryption failed.")
+
+def encrypt(shift1, shift2):
+    """
+    Reads raw_text.txt, uses the encrypt_char function to encrypt each character and writes the encrypted text to encrypted_text.txt
+    """
+    
+    # raw_text.txt is opened for reading, and encrypted_text.txt is created for writing
+    with open('raw_text.txt', 'r', encoding='utf-8') as file:
+        with open('encrypted_text.txt', 'w', encoding='utf-8') as encrypted_file:
+            raw_text = file.read()
+            # For each character in the raw text, encrypt it using the encrypt_char function
+            # and write the encrypted characters to the encrypted file to form the encrypted text
+            for char in raw_text:
+                encrypted_file.write(encrypt_char(char, shift1, shift2))
+
+
+
+def decrypt(encryption_map):
+    """
+    Reads encrypted_text.txt, uses the encryption_map to decrypt each character and writes the decrypted text to decrypted_text.txt
+    """
+    
+    # encrypted_text.txt is opened for reading, and decrypted_text.txt is created for writing
+    with open('encrypted_text.txt', 'r', encoding='utf-8') as encrypted_file:
+        with open('decrypted_text.txt', 'w', encoding='utf-8') as decrypted_file:
+            # For each character in the encrypted text, check if it exists in the encryption_map
+            # if it does, write the corresponding original characters to the decrypted file to form the decrypted text
+            for char in encrypted_file.read():
+                # Counts how many times the character has appeared in the decrypted text
+                count = decrypted_counts.get(char, 0) + 1
+                # Adds the decrypted character into the decrypted_counts dictionary and the amount of times it has appeared as the value
+                decrypted_counts[char] = count
+                key = f"{char}{count}"
+                # Checks if the decrypted character with the count suffix exists in the encryption_map and writes it to the decrypted file
+                decrypted_file.write(encryption_map.get(key, char))
+
+
+
+def verify_decryption():
+    """
+    Verifies that the decryption was successful by comparing the decrypted text with the original raw text
+    """
+    
+    # Opens both the raw text and decrypted text files for comparison
+    with open('raw_text.txt', 'r', encoding='utf-8') as raw_file:
+        with open('decrypted_text.txt', 'r', encoding='utf-8') as decrypted_file:
+            raw_lines = raw_file.readlines()
+            decrypted_lines = decrypted_file.readlines()            
+            # Compares each line using an index
+            for x in range(len(raw_lines)):
+                if x >= len(decrypted_lines) or raw_lines[x] != decrypted_lines[x]:
+                    # Returns False if any line does not match
+                    return False
+    # Returns True if all lines match
+    return True
+
+
+
 def main():
-    s1 = int(input("Enter shift1: "))
-    s2 = int(input("Enter shift2: "))
-    encrypt_file(s1, s2)
-    decrypt_file(s1, s2)
-    verify()
+    """
+    The main function that handles the encryption and decryption process
+    """
+    
+    # Prompts the user for two shift values
+    shift1, shift2 = shift_input()
+    
+    # Calls the encrypt function with the shift values to encrypt the text
+    encrypt(shift1, shift2)
+    
+    # Calls the decrypt function with the encryption_map to decrypt the text
+    decrypt(encryption_map)
+
+    # Verifies that the decryption was successful
+    if verify_decryption():
+        print("Decryption successful! The decrypted text matches the original raw text.")
+    else:
+        print("Decryption failed! The decrypted text does not match the original raw text.")
+
+
 
 if __name__ == "__main__":
     main()
-
