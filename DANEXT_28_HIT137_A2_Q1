@@ -1,8 +1,8 @@
-# A dictionary to store the encrypted characters and their corresponding original characters
+# A dictionary to store keys in the format x# where x is the encrypted character and # is the nth time it appears, and the value which is the original character
 encryption_map = {}  
-# A dictionary to count repeated encrypted characters (as multiple characters can have the same encrypted character)
+# A dictionary that stores the encrypted character as the key, and the nth time it appears as the value (as multiple characters can have the same encrypted character)
 encrypted_counts = {}  
-# A dictionary to store decrypted characters and their counts
+# A dictionary that stores the character to be decrypted as the key, and the nth time it appears as the value
 decrypted_counts = {}
 
 
@@ -50,9 +50,9 @@ def encrypt_char(char, shift1, shift2):
     # Calculates the encrypted character based on the ASCII value and the shift values
     o = ord(char)
     if 'a' <= char <= 'm':        
-        encrypted_char = chr(o + shift1*shift2)
+        encrypted_char = chr(o + (shift1*shift2))
     elif 'n' <= char <= 'z':      
-        encrypted_char = chr(o - shift1*shift2)
+        encrypted_char = chr(o - (shift1+shift2))
     elif 'A' <= char <= 'M':      
         encrypted_char = chr(o - shift1)
     elif 'N' <= char <= 'Z':      
@@ -60,13 +60,14 @@ def encrypt_char(char, shift1, shift2):
     else:
         encrypted_char = char
 
-    # Counts duplicates and adds a suffix to the encrypted character
+    # Assigns a value to count for the amount of times a character is encrypted to a specific encrypted character
     count = encrypted_counts.get(encrypted_char, 0) + 1
     # Adds the encrypted character into the encrypted_counts dictionary and the amount of times it has appeared as the value
     encrypted_counts[encrypted_char] = count
 
-    # Adds encrypted character along with suffix to encryption_map, and the original character as the value
-    key = f"{encrypted_char}{count}"  # e.g., 'x1', 'x2'
+    # Creates a key for encryption_map in the format x# where x is the encrypted character and # is the nth time it appears
+    key = f"{encrypted_char}{count}"
+    # Adds the key created as the key in the dictionary and the original character as the value
     encryption_map[key] = char
 
     # Returns the encrypted character
@@ -101,12 +102,15 @@ def decrypt(encryption_map):
             # For each character in the encrypted text, check if it exists in the encryption_map
             # if it does, write the corresponding original characters to the decrypted file to form the decrypted text
             for char in encrypted_file.read():
-                # Counts how many times the character has appeared in the decrypted text
+                # Assigns a value to count for the amount of times a character is to be decrypted to a specific encrypted character
                 count = decrypted_counts.get(char, 0) + 1
-                # Adds the decrypted character into the decrypted_counts dictionary and the amount of times it has appeared as the value
+                # Adds the character to be decrypted into the decrypted_counts dictionary and the amount of times it has appeared as the value
+                # ***IF ENCRYPTION AND DECRYPTION ARE PERFORMED CORRECTLY, decrypted_counts AND encrypted_counts SHOULD BE IDENTICAL***
                 decrypted_counts[char] = count
+                
+                # Creates a key in the format x# where x is the character to be decrypted and # is the nth time it appears
                 key = f"{char}{count}"
-                # Checks if the decrypted character with the count suffix exists in the encryption_map and writes it to the decrypted file
+                # Searches for the key that was created inside of encryption_map, and if found, the corresponding value is written to the decrypted file to form the decrypted text
                 decrypted_file.write(encryption_map.get(key, char))
 
 
