@@ -1,86 +1,83 @@
-"""
-Group Name: DAN/EXT 28
+shift1 = int(input("Enter the first encrypt number: "))
+shift2 = int(input("Enter the second encrypt number: "))
 
-Group Members:
-Fateen Rahman – S387983
-Hendrick Dang – S395598
-Kevin Zhu – S387035
-Mehraab Ferdouse – S393148
-"""
+encrypt = ''
 
+with open("raw_text.txt", "r", encoding="utf-8") as f:
+    content = f.read()
+    for ch in content:
+        if 'a' <= ch <= 'm':
+            old_ch = ord(ch) + shift1 * shift2
+            old_ch = ((old_ch - ord('a')) % 26) + ord('a')
+            new_ch = chr(old_ch)
+            encrypt += new_ch
+    
+        elif 'n' <= ch <= 'z':
+            old_ch = ord(ch) - shift1 - shift2
+            old_ch = ((old_ch - ord('a')) % 26) + ord('a')
+            new_ch = chr(old_ch)
+            encrypt += new_ch
 
-def enc(ch, s1, s2):
-    if ch.islower():
+        elif 'A' <= ch <= 'M':
+            old_ch = ord(ch) - shift1
+            old_ch = ((old_ch - ord('A')) % 26) + ord('A')
+            new_ch = chr(old_ch)
+            encrypt += new_ch
+
+        elif 'N' <= ch <= 'Z':
+            old_ch = ord(ch) + shift2 ** 2
+            old_ch = ((old_ch - ord('A')) % 26) + ord('A')
+            new_ch = chr(old_ch)
+            encrypt += new_ch
         
-        if ch < 'n':      
-            shift = s1 * s2
-            return chr((ord(ch) - 97 + shift) % 26 + 97)
-        else:            
-            shift = s1 + s2
-            return chr((ord(ch) - 97 - shift) % 26 + 97)
+        else:
+            encrypt += ch
 
-    elif ch.isupper():
-      
-        if ch < 'N':     
-            shift = s1
-            return chr((ord(ch) - 65 - shift) % 26 + 65)
-        else:            
-            shift = s2 * s2
-            return chr((ord(ch) - 65 + shift) % 26 + 65)
-    else:
+decrypt = ''
+
+with open('encrypt_text.txt', 'w', encoding='utf-8') as f:
+    f.write(encrypt)
+
+with open('encrypt_text.txt', 'r', encoding='utf-8') as f:
+    encrypt_text = f.read()
+    for ch in encrypt_text:
+        if 'a' <= ch <= 'm':
+            old_ch = ord(ch) - shift1 * shift2
+            old_ch = ((old_ch - ord('a')) % 26) + ord('a')
+            new_ch = chr(old_ch)
+            decrypt += new_ch
+    
+        elif 'n' <= ch <= 'z':
+            old_ch = ord(ch) + shift1 - shift2
+            old_ch = ((old_ch - ord('a')) % 26) + ord('a')
+            new_ch = chr(old_ch)
+            decrypt += new_ch
+
+        elif 'A' <= ch <= 'M':
+            old_ch = ord(ch) + shift1
+            old_ch = ((old_ch - ord('A')) % 26) + ord('A')
+            new_ch = chr(old_ch)
+            decrypt += new_ch
+
+        elif 'N' <= ch <= 'Z':
+            old_ch = ord(ch) - shift2 ** 2
+            old_ch = ((old_ch - ord('A')) % 26) + ord('A')
+            new_ch = chr(old_ch)
+            decrypt += new_ch
         
-        return ch
-
-def dec(ch, s1, s2):
-    if ch.islower():
-        if ch < 'n':
-            shift = s1 * s2
-            return chr((ord(ch) - 97 - shift) % 26 + 97)
         else:
-            shift = s1 + s2
-            return chr((ord(ch) - 97 + shift) % 26 + 97)
+            decrypt += ch
 
-    elif ch.isupper():
-        if ch < 'N':
-            shift = s1
-            return chr((ord(ch) - 65 + shift) % 26 + 65)
-        else:
-            shift = s2 * s2
-            return chr((ord(ch) - 65 - shift) % 26 + 65)
-    else:
-        return ch
+with open('decrypted_text.txt', 'w', encoding='utf-8') as f:
+    f.write(decrypt)
 
-def encrypt_file(s1, s2):
-    with open("raw_text.txt","r") as f:
-        plain = f.read()
-    encrypted = ""
-    for c in plain:
-      encrypted += enc(c, s1, s2)
-    with open("encrypted_text.txt","w") as f:
-        f.write(encrypted)
+with open('raw_text.txt', 'r', encoding='utf-8') as f:
+    original = f.read()
 
-def decrypt_file(s1, s2):
-    with open("encrypted_text.txt","r") as f:
-        encrypted = f.read()
-    decrypted = ""
-    for c in encrypted:
-      decrypted += dec(c, s1, s2)
-    with open("decrypted_text.txt","w") as f:
-        f.write(decrypted)
+with open('decrypted_text.txt', 'r', encoding='utf-8') as f:
+    decrypted_text = f.read()
 
-def verify():
-    with open("raw_text.txt") as f1, open("decrypted_text.txt") as f2:
-        if f1.read() == f2.read():
-            print("Decryption successful!")
-        else:
-            print("Decryption failed.")
-def main():
-    s1 = int(input("Enter shift1: "))
-    s2 = int(input("Enter shift2: "))
-    encrypt_file(s1, s2)
-    decrypt_file(s1, s2)
-    verify()
-
-if __name__ == "__main__":
-    main()
-
+if original == decrypted_text:
+    print('Decryption successful')
+else:
+    print('Decryption failed')
