@@ -87,4 +87,5 @@ def main():
     write_stability(data, "temperature_stability_stations.txt")
 
 if __name__ == "__main__":
+
     main()
