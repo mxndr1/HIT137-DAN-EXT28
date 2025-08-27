@@ -1,0 +1,83 @@
+shift1 = int(input("Enter the first encrypt number: "))
+shift2 = int(input("Enter the second encrypt number: "))
+
+encrypt = ''
+
+with open("raw_text.txt", "r", encoding="utf-8") as f:
+    content = f.read()
+    for ch in content:
+        if 'a' <= ch <= 'm':
+            old_ch = ord(ch) + shift1 * shift2
+            old_ch = ((old_ch - ord('a')) % 26) + ord('a')
+            new_ch = chr(old_ch)
+            encrypt += new_ch
+    
+        elif 'n' <= ch <= 'z':
+            old_ch = ord(ch) - shift1 - shift2
+            old_ch = ((old_ch - ord('a')) % 26) + ord('a')
+            new_ch = chr(old_ch)
+            encrypt += new_ch
+
+        elif 'A' <= ch <= 'M':
+            old_ch = ord(ch) - shift1
+            old_ch = ((old_ch - ord('A')) % 26) + ord('A')
+            new_ch = chr(old_ch)
+            encrypt += new_ch
+
+        elif 'N' <= ch <= 'Z':
+            old_ch = ord(ch) + shift2 ** 2
+            old_ch = ((old_ch - ord('A')) % 26) + ord('A')
+            new_ch = chr(old_ch)
+            encrypt += new_ch
+        
+        else:
+            encrypt += ch
+
+decrypt = ''
+
+with open('encrypt_text.txt', 'w', encoding='utf-8') as f:
+    f.write(encrypt)
+
+with open('encrypt_text.txt', 'r', encoding='utf-8') as f:
+    encrypt_text = f.read()
+    for ch in encrypt_text:
+        if 'a' <= ch <= 'm':
+            old_ch = ord(ch) - shift1 * shift2
+            old_ch = ((old_ch - ord('a')) % 26) + ord('a')
+            new_ch = chr(old_ch)
+            decrypt += new_ch
+    
+        elif 'n' <= ch <= 'z':
+            old_ch = ord(ch) + shift1 - shift2
+            old_ch = ((old_ch - ord('a')) % 26) + ord('a')
+            new_ch = chr(old_ch)
+            decrypt += new_ch
+
+        elif 'A' <= ch <= 'M':
+            old_ch = ord(ch) + shift1
+            old_ch = ((old_ch - ord('A')) % 26) + ord('A')
+            new_ch = chr(old_ch)
+            decrypt += new_ch
+
+        elif 'N' <= ch <= 'Z':
+            old_ch = ord(ch) - shift2 ** 2
+            old_ch = ((old_ch - ord('A')) % 26) + ord('A')
+            new_ch = chr(old_ch)
+            decrypt += new_ch
+        
+        else:
+            decrypt += ch
+
+with open('decrypted_text.txt', 'w', encoding='utf-8') as f:
+    f.write(decrypt)
+
+with open('raw_text.txt', 'r', encoding='utf-8') as f:
+    original = f.read()
+
+with open('decrypted_text.txt', 'r', encoding='utf-8') as f:
+    decrypted_text = f.read()
+
+if original == decrypted_text:
+    print('Decryption successful')
+else:
+    print('Decryption failed')
