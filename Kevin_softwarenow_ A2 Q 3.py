@@ -17,17 +17,16 @@ def draw_pattern(sides, length, depth):
     angle = 360 / sides
     for _ in range(sides):
         draw_edge(length, depth)
-        turtle.right(angle)   # 顺时针转，保证内凹方向正确
+        turtle.right(angle) 
 
-# ===== 主程序 =====
 sides = int(input("Enter number of sides: "))
 length = int(input("Enter side length: "))
 depth = int(input("Enter recursion depth: "))
 
 turtle.speed(0)
 turtle.penup()
-turtle.goto(-length/2, length/2)  # 从左上角开始
-turtle.setheading(0)              # 向右
+turtle.goto(-length/2, length/2)
+turtle.setheading(0)
 turtle.pendown()
 
 draw_pattern(sides, length, depth)
