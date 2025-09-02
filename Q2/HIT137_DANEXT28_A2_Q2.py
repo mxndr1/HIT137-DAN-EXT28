@@ -1,0 +1,188 @@
+import pandas as pd
+import os
+
+
+
+# A dictionary to store keys in the format x# where x is the encrypted character and # is the nth time it appears, and the value which is the original character
+encryption_map = {}  
+# A dictionary that stores the encrypted character as the key, and the nth time it appears as the value (as multiple characters can have the same encrypted character)
+encrypted_counts = {}  
+# A dictionary that stores the character to be decrypted as the key, and the nth time it appears as the value
+decrypted_counts = {}
+
+
+
+def file_paths():
+    """
+    Searches the current folder and subfolders for 'raw_text.txt'
+    Returns the full path to the file when found and also defines encrypted and decrypted file paths in the same folder as raw_text.txt
+    """
+    
+    
+    base_dir = os.getcwd()
+    for root, dirs, files in os.walk(base_dir):
+        if 'raw_text.txt' in files:
+            raw_path = os.path.join(root, 'raw_text.txt')
+            encrypted_path = os.path.join(os.path.dirname(raw_path), 'encrypted_text.txt')
+            decrypted_path = os.path.join(os.path.dirname(raw_path), 'decrypted_text.txt')
+            return raw_path, encrypted_path, decrypted_path
+    # If not found, raise an error
+    raise FileNotFoundError("raw_text.txt not found in this folder or subfolders.")
+
+
+
+
+def shift_input():
+    """
+    Prompts the user for two shift values between 1 and 9
+    This ensures that the encrypted characters are not out of the specified ASCII range
+    """
+    
+    # While the user does not enter a valid integer between 1 and 9, the program will keep asking for an input for shift1
+    while True:
+        try:
+            shift1 = int(input("Enter the shift value (1-9): "))
+            if 1 <= shift1 <= 9:
+                break
+            else:
+                print("Shift value must be between 1 and 9")
+        except ValueError:
+            print("Please enter a valid integer.")
+
+    # While the user does not enter a valid integer between 1 and 9, the program will keep asking for an input for shift2
+    while True:
+        try:
+            shift2 = int(input("Enter the second shift value (1-9): "))
+            if 1 <= shift2 <= 9:
+                break
+            else:
+                print("Second shift value must be between 1 and 9")
+        except ValueError:
+            print("Please enter a valid integer.")
+            
+    # Returns the two shift values
+    return shift1, shift2
+
+
+
+def encrypt_char(char, shift1, shift2):
+    """
+    Encrypts a single character using the specified shift values.
+    Encrypted_counts keeps track of how many times each encrypted character has appeared.
+    Encryption_map stores the encrypted characters along with a count suffix as the key and their corresponding original characters as the value.
+    """
+    
+    # Calculates the encrypted character based on the ASCII value and the shift values
+    o = ord(char)
+    if 'a' <= char <= 'm':        
+        encrypted_char = chr(o + (shift1*shift2))
+    elif 'n' <= char <= 'z':      
+        encrypted_char = chr(o - (shift1+shift2))
+    elif 'A' <= char <= 'M':      
+        encrypted_char = chr(o - shift1)
+    elif 'N' <= char <= 'Z':      
+        encrypted_char = chr(o + (shift2**2))
+    else:
+        encrypted_char = char
+
+    # Assigns a value to count for the amount of times a character is encrypted to a specific encrypted character
+    count = encrypted_counts.get(encrypted_char, 0) + 1
+    # Adds the encrypted character into the encrypted_counts dictionary and the amount of times it has appeared as the value
+    encrypted_counts[encrypted_char] = count
+
+    # Creates a key for encryption_map in the format x# where x is the encrypted character and # is the nth time it appears
+    key = f"{encrypted_char}{count}"
+    # Adds the key created as the key in the dictionary and the original character as the value
+    encryption_map[key] = char
+
+    # Returns the encrypted character
+    return encrypted_char
+
+
+
+def encrypt(shift1, shift2, raw_path, encrypted_path):
+    """
+    Reads raw_text.txt, uses the encrypt_char function to encrypt each character and writes the encrypted text to encrypted_text.txt
+    """
+    
+    # raw_text.txt is opened for reading, and encrypted_text.txt is created for writing
+    with open(raw_path, 'r', encoding='utf-8') as file:
+        with open(encrypted_path, 'w', encoding='utf-8') as encrypted_file:
+            raw_text = file.read()
+            # For each character in the raw text, encrypt it using the encrypt_char function
+            # and write the encrypted characters to the encrypted file to form the encrypted text
+            for char in raw_text:
+                encrypted_file.write(encrypt_char(char, shift1, shift2))
+
+
+
+def decrypt(encryption_map, encrypted_path, decrypted_path):
+    """
+    Reads encrypted_text.txt, uses the encryption_map to decrypt each character and writes the decrypted text to decrypted_text.txt
+    """
+    
+    # encrypted_text.txt is opened for reading, and decrypted_text.txt is created for writing
+    with open(encrypted_path, 'r', encoding='utf-8') as encrypted_file:
+        with open(decrypted_path, 'w', encoding='utf-8') as decrypted_file:
+            # For each character in the encrypted text, check if it exists in the encryption_map
+            for char in encrypted_file.read():
+                # Assigns a value to count for the amount of times a character is to be decrypted to a specific encrypted character
+                count = decrypted_counts.get(char, 0) + 1
+                # Adds the character to be decrypted into the decrypted_counts dictionary and the amount of times it has appeared as the value
+                # ***IF ENCRYPTION AND DECRYPTION ARE PERFORMED CORRECTLY, decrypted_counts AND encrypted_counts SHOULD BE IDENTICAL***
+                decrypted_counts[char] = count
+                
+                # Creates a key in the format x# where x is the character to be decrypted and # is the nth time it appears
+                key = f"{char}{count}"
+                # Searches for the key that was created inside of encryption_map, and if found, the corresponding value is written to the decrypted file to form the decrypted text
+                decrypted_file.write(encryption_map.get(key, char))
+
+
+
+def verify_decryption(raw_path, decrypted_path):
+    """
+    Verifies that the decryption was successful by comparing the decrypted text with the original raw text
+    """
+    
+    # Opens both the raw text and decrypted text files for comparison
+    with open(raw_path, 'r', encoding='utf-8') as raw_file:
+        with open(decrypted_path, 'r', encoding='utf-8') as decrypted_file:
+            raw_lines = raw_file.readlines()
+            decrypted_lines = decrypted_file.readlines()            
+            # Compares each line using an index
+            for x in range(len(raw_lines)):
+                if x >= len(decrypted_lines) or raw_lines[x] != decrypted_lines[x]:
+                    # Returns False if any line does not match
+                    return False
+    # Returns True if all lines match
+    return True
+
+
+
+def main():
+    """
+    The main function that handles the encryption and decryption process
+    """
+    
+    # Locates raw_text.txt and returns locations for the raw text, encrypted text and decrypted text
+    raw_path, encrypted_path, decrypted_path = file_paths()
+    
+    # Prompts the user for two shift values
+    shift1, shift2 = shift_input()
+    
+    # Calls the encrypt function with the shift values to encrypt the text
+    encrypt(shift1, shift2, raw_path, encrypted_path)
+    
+    # Calls the decrypt function with the encryption_map to decrypt the text
+    decrypt(encryption_map, encrypted_path, decrypted_path)
+
+    # Verifies that the decryption was successful
+    if verify_decryption(raw_path, decrypted_path):
+        print("Decryption successful! The decrypted text matches the original raw text.")
+    else:
+        print("Decryption failed! The decrypted text does not match the original raw text.")
+
+
+
+if __name__ == "__main__":
+    main()
