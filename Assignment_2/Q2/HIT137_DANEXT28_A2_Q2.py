@@ -10,190 +10,192 @@ MEHRAAB FERDOUSE - s393148
 
 '''
 
-import pandas as pd
 import os
+import pandas as pd
 
 
 
-# A dictionary to store keys in the format x# where x is the encrypted character and # is the nth time it appears, and the value which is the original character
-encryption_map = {}  
-# A dictionary that stores the encrypted character as the key, and the nth time it appears as the value (as multiple characters can have the same encrypted character)
-encrypted_counts = {}  
-# A dictionary that stores the character to be decrypted as the key, and the nth time it appears as the value
-decrypted_counts = {}
-
-
-
-def file_paths():
+def dataframe_concat():
     """
-    Searches the current folder and subfolders for 'raw_text.txt'
-    Returns the full path to the file when found and also defines encrypted and decrypted file paths in the same folder as raw_text.txt
+    Locates the 'temperatures' folder and also concatenates all CSV files in the specified directory into a single dataframe
     """
     
-    
+    dataframes = []
+
+    # Finds the absolute path to the 'temperatures' folder no matter where it is located
     base_dir = os.getcwd()
     for root, dirs, files in os.walk(base_dir):
-        if 'raw_text.txt' in files:
-            raw_path = os.path.join(root, 'raw_text.txt')
-            encrypted_path = os.path.join(os.path.dirname(raw_path), 'encrypted_text.txt')
-            decrypted_path = os.path.join(os.path.dirname(raw_path), 'decrypted_text.txt')
-            return raw_path, encrypted_path, decrypted_path
-    # If not found, raise an error
-    raise FileNotFoundError("raw_text.txt not found in this folder or subfolders.")
+        if 'temperatures' in dirs:
+            temperatures_path = os.path.join(root, 'temperatures')
+            break
+
+    # Iterates through all CSV files in the 'temperatures' folder and reads them into dataframes
+    with os.scandir(temperatures_path) as temperatures:
+        for file in temperatures:
+            if file.name.endswith(".csv"):
+                df = pd.read_csv(file.path)
+                dataframes.append(df)
+
+    # Concatenates all dataframes into a single dataframe and returns it and also returns the path to the 'temperatures' folder
+    return (pd.concat(dataframes, ignore_index=True)), temperatures_path
 
 
 
-
-def shift_input():
+def extract_station_temperatures(all_temperatures):
     """
-    Prompts the user for two shift values between 1 and 9
-    This ensures that the encrypted characters are not out of the specified ASCII range
+    Extracts the temperatures for each station across all years and stores them in a dictionary
     """
     
-    # While the user does not enter a valid integer between 1 and 9, the program will keep asking for an input for shift1
-    while True:
-        try:
-            shift1 = int(input("Enter the shift value (1-9): "))
-            if 1 <= shift1 <= 9:
-                break
-            else:
-                print("Shift value must be between 1 and 9")
-        except ValueError:
-            print("Please enter a valid integer.")
+    # Creates a dictionary to store the temperatures for each station across every year
+    extracted_temps = {}
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']
+    num_rows = all_temperatures.shape[0]
 
-    # While the user does not enter a valid integer between 1 and 9, the program will keep asking for an input for shift2
-    while True:
-        try:
-            shift2 = int(input("Enter the second shift value (1-9): "))
-            if 1 <= shift2 <= 9:
-                break
-            else:
-                print("Second shift value must be between 1 and 9")
-        except ValueError:
-            print("Please enter a valid integer.")
+    # Since the concatenated dataframe has 112 unique rows/stations that repeat in the same order for every year,
+    # we only need to iterate through the first 112 rows to get the station names
+    for unique_rows in range(112):
+        station_name = all_temperatures.iloc[unique_rows]['STATION_NAME']
+        temps_list = []
+        # A step of 112 is used in the for loop to get the temperature values for each station across all years.
+        # This is because the dataframe is structured such that each station's data appears every 112 rows
+        for repeat_station_rows in range(unique_rows, num_rows, 112):
+            temps = all_temperatures.iloc[repeat_station_rows][months].tolist()
+            temps_list.extend(temps)
+        extracted_temps[station_name] = temps_list
+        
+    # Returns the dictionary containing the temperatures for each station
+    return extracted_temps
+
+
+
+def calculate_averages(all_temperatures):
+    """
+    Calculates the average temperatures for each season and returns a dictionary with the results
+    """
+    
+    # Calculates the average temperatures for each season
+    summer_avgs = all_temperatures[['January', 'February', 'December']].mean()
+    total_summer_avg = summer_avgs.mean()
+
+    winter_avgs = all_temperatures[['June', 'July', 'August']].mean()
+    total_winter_avg = winter_avgs.mean()    
+
+    autumn_avgs = all_temperatures[['March', 'April', 'May']].mean()
+    total_autumn_avg = autumn_avgs.mean()
+
+    spring_avgs = all_temperatures[['September', 'October', 'November']].mean()
+    total_spring_avg = spring_avgs.mean()
+
+    # Returns a dictionary with the average temperatures for each season
+    return {'Summer': total_summer_avg,
+            'Winter': total_winter_avg,
+            'Autumn': total_autumn_avg,
+            'Spring': total_spring_avg}
+    
+
+
+def calculate_largest_temp_range(all_temps_per_station):
+    """
+    Calculates the largest temperature range for each station and returns a dictionary with the results
+    """
+
+    # The maximum temperature, minimum temperature, and the range between those values for each station is calculated and added to a dictionary
+    station_ranges = {}
+    max_range = None
+
+    for station, temps in all_temps_per_station.items():
+        temp_range = max(temps) - min(temps)
+        station_ranges[station] = {
+            'range': temp_range,
+            'min': min(temps),
+            'max': max(temps)}
+        
+        if (max_range is None) or (temp_range > max_range):
+            max_range = temp_range
+
+    # The ranges from the previous dictionary are compared to find the stations with the largest temperature range
+    # and a new dictionary is created to store these stations and their temperature ranges
+    highest_ranges_dict = {}
+    for station, minmaxrange in station_ranges.items():
+        if minmaxrange['range'] == max_range:
+            highest_ranges_dict[station] = {
+                'range': minmaxrange['range'],
+                'max': minmaxrange['max'],
+                'min': minmaxrange['min']}
             
-    # Returns the two shift values
-    return shift1, shift2
+    # Returns the dictionary containing the stations with the largest temperature range
+    return highest_ranges_dict
 
 
 
-def encrypt_char(char, shift1, shift2):
+def calculate_most_stable_temperature(all_temps_per_station):
     """
-    Encrypts a single character using the specified shift values.
-    Encrypted_counts keeps track of how many times each encrypted character has appeared.
-    Encryption_map stores the encrypted characters along with a count suffix as the key and their corresponding original characters as the value.
-    """
-    
-    # Calculates the encrypted character based on the ASCII value and the shift values
-    o = ord(char)
-    if 'a' <= char <= 'm':        
-        encrypted_char = chr(o + (shift1*shift2))
-    elif 'n' <= char <= 'z':      
-        encrypted_char = chr(o - (shift1+shift2))
-    elif 'A' <= char <= 'M':      
-        encrypted_char = chr(o - shift1)
-    elif 'N' <= char <= 'Z':      
-        encrypted_char = chr(o + (shift2**2))
-    else:
-        encrypted_char = char
-
-    # Assigns a value to count for the amount of times a character is encrypted to a specific encrypted character
-    count = encrypted_counts.get(encrypted_char, 0) + 1
-    # Adds the encrypted character into the encrypted_counts dictionary and the amount of times it has appeared as the value
-    encrypted_counts[encrypted_char] = count
-
-    # Creates a key for encryption_map in the format x# where x is the encrypted character and # is the nth time it appears
-    key = f"{encrypted_char}{count}"
-    # Adds the key created as the key in the dictionary and the original character as the value
-    encryption_map[key] = char
-
-    # Returns the encrypted character
-    return encrypted_char
-
-
-
-def encrypt(shift1, shift2, raw_path, encrypted_path):
-    """
-    Reads raw_text.txt, uses the encrypt_char function to encrypt each character and writes the encrypted text to encrypted_text.txt
+    Calculates the station with the most stable temperature and returns its name and standard deviation
+    as well as the station with the most variable temperature and returns its name and standard deviation
     """
     
-    # raw_text.txt is opened for reading, and encrypted_text.txt is created for writing
-    with open(raw_path, 'r', encoding='utf-8') as file:
-        with open(encrypted_path, 'w', encoding='utf-8') as encrypted_file:
-            raw_text = file.read()
-            # For each character in the raw text, encrypt it using the encrypt_char function
-            # and write the encrypted characters to the encrypted file to form the encrypted text
-            for char in raw_text:
-                encrypted_file.write(encrypt_char(char, shift1, shift2))
+    # The station with the most stable temperature is determined by calculating the standard deviation of the temperatures for each station
+    # The station with the most variable temperature is also determined in the same way
+    most_stable_station = None
+    lowest_std_dev = None
+    most_variable_station = None
+    highest_std_dev = None
 
+    for station, temps in all_temps_per_station.items():
+        std_dev = pd.Series(temps).std()
+        if (lowest_std_dev is None) or (std_dev < lowest_std_dev):
+            lowest_std_dev = std_dev
+            most_stable_station = station
+        if (highest_std_dev is None) or (std_dev > highest_std_dev):
+            highest_std_dev = std_dev
+            most_variable_station = station
 
-
-def decrypt(encryption_map, encrypted_path, decrypted_path):
-    """
-    Reads encrypted_text.txt, uses the encryption_map to decrypt each character and writes the decrypted text to decrypted_text.txt
-    """
+    # Returns the names and standard deviations of the most stable and most variable stations
+    return {'Most Stable': {'station': most_stable_station, 'std_dev': lowest_std_dev},
+            'Most Variable': {'station': most_variable_station, 'std_dev': highest_std_dev}}
     
-    # encrypted_text.txt is opened for reading, and decrypted_text.txt is created for writing
-    with open(encrypted_path, 'r', encoding='utf-8') as encrypted_file:
-        with open(decrypted_path, 'w', encoding='utf-8') as decrypted_file:
-            # For each character in the encrypted text, check if it exists in the encryption_map
-            for char in encrypted_file.read():
-                # Assigns a value to count for the amount of times a character is to be decrypted to a specific encrypted character
-                count = decrypted_counts.get(char, 0) + 1
-                # Adds the character to be decrypted into the decrypted_counts dictionary and the amount of times it has appeared as the value
-                # ***IF ENCRYPTION AND DECRYPTION ARE PERFORMED CORRECTLY, decrypted_counts AND encrypted_counts SHOULD BE IDENTICAL***
-                decrypted_counts[char] = count
-                
-                # Creates a key in the format x# where x is the character to be decrypted and # is the nth time it appears
-                key = f"{char}{count}"
-                # Searches for the key that was created inside of encryption_map, and if found, the corresponding value is written to the decrypted file to form the decrypted text
-                decrypted_file.write(encryption_map.get(key, char))
-
-
-
-def verify_decryption(raw_path, decrypted_path):
-    """
-    Verifies that the decryption was successful by comparing the decrypted text with the original raw text
-    """
     
-    # Opens both the raw text and decrypted text files for comparison
-    with open(raw_path, 'r', encoding='utf-8') as raw_file:
-        with open(decrypted_path, 'r', encoding='utf-8') as decrypted_file:
-            raw_lines = raw_file.readlines()
-            decrypted_lines = decrypted_file.readlines()            
-            # Compares each line using an index
-            for x in range(len(raw_lines)):
-                if x >= len(decrypted_lines) or raw_lines[x] != decrypted_lines[x]:
-                    # Returns False if any line does not match
-                    return False
-    # Returns True if all lines match
-    return True
-
-
 
 def main():
     """
-    The main function that handles the encryption and decryption process
+    The main function that reads data from CSV files, analyses it, then writes the results to text files
     """
-    
-    # Locates raw_text.txt and returns locations for the raw text, encrypted text and decrypted text
-    raw_path, encrypted_path, decrypted_path = file_paths()
-    
-    # Prompts the user for two shift values
-    shift1, shift2 = shift_input()
-    
-    # Calls the encrypt function with the shift values to encrypt the text
-    encrypt(shift1, shift2, raw_path, encrypted_path)
-    
-    # Calls the decrypt function with the encryption_map to decrypt the text
-    decrypt(encryption_map, encrypted_path, decrypted_path)
 
-    # Verifies that the decryption was successful
-    if verify_decryption(raw_path, decrypted_path):
-        print("Decryption successful! The decrypted text matches the original raw text.")
-    else:
-        print("Decryption failed! The decrypted text does not match the original raw text.")
+    # Assigns the concatenated dataframe and folder path to variables
+    all_temperatures, temperatures_path = dataframe_concat()
+    # Assigns the station names and their temperatures across every year to a dictionary
+    all_temps_per_station = extract_station_temperatures(all_temperatures)
 
+    # Determines the parent folder of the 'temperatures' folder so the output files are saved there
+    output_folder = os.path.dirname(temperatures_path)
+
+    # Writes the average temperatures to a text file
+    avg_file = os.path.join(output_folder, 'average_temp.txt')
+    with open(avg_file, 'w') as file:
+        averages = calculate_averages(all_temperatures)
+        for season, avg in averages.items():
+            file.write(f"{season}: {avg:.1f}°C\n")
+    
+    
+    # Writes the largest temperature ranges to a text file        
+    range_file = os.path.join(output_folder, 'largest_temp_range_station.txt')
+    with open(range_file, 'w') as file:
+        highest_ranges = calculate_largest_temp_range(all_temps_per_station)
+        for station, values in highest_ranges.items():
+            file.write(f"{station}: Range {values['range']:.1f}°C (Max: {values['max']:.1f}°C, Min: {values['min']:.1f}°C)\n")
+            
+            
+    # Writes the most stable and most variable temperatures to a text file
+    stability_file = os.path.join(output_folder, 'temperature_stability_stations.txt')
+    with open(stability_file, 'w') as file:
+        most_stable_variable = calculate_most_stable_temperature(all_temps_per_station)
+        for stability, values in most_stable_variable.items():
+            file.write(f"{stability}: Station {values['station']}: StdDev {values['std_dev']:.1f}°C\n")
+
+
+    # Checks if all three files exist before printing success message
+    if all(os.path.exists(f) for f in [avg_file, range_file, stability_file]):
+        print(f"Results successfully written to files!")    
 
 
 if __name__ == "__main__":
