@@ -11,7 +11,6 @@ MEHRAAB FERDOUSE - s393148
 '''
 
 import turtle
-import math
 
 
 
