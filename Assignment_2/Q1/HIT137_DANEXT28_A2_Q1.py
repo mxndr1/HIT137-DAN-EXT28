@@ -1,3 +1,15 @@
+'''
+
+Group Name: DAN/EXT 28
+
+Group Members:
+FATEEN RAHMAN - s387983
+HENDRICK DANG (VAN HOI DANG)- s395598
+KEVIN ZHU (JIAWEI ZHU) - s387035
+MEHRAAB FERDOUSE - s393148
+
+'''
+
 # A dictionary to store keys in the format x# where x is the encrypted character and # is the nth time it appears, and the value which is the original character
 encryption_map = {}  
 # A dictionary that stores the encrypted character as the key, and the nth time it appears as the value (as multiple characters can have the same encrypted character)
