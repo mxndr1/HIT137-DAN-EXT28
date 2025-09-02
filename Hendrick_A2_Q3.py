@@ -27,7 +27,7 @@ L = float(input("Enter the side length: "))
 d = int(input("Enter the recursion depth: "))
 
 # Setup turtle window
-turtle.setup(1000, 800)
+turtle.setup(800, 500)
 turtle.speed(0)
 turtle.pensize(2)
 
