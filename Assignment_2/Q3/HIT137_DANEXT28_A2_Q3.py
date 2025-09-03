@@ -112,25 +112,25 @@ def user_input():
 
 
 
-def turtle_Setup():
+def turtle_Setup(length):
     """
     Sets up the turtle window and the parameters for drawing the fractal.
     Places the fractal roughly in the center of the screen.
     """
     
     # Sets a fixed size for the turtle window
-    turtle.setup(800, 600)
+    turtle.setup(800, 550)         
     # Sets drawing speed
-    turtle.speed(10)  
+    turtle.speed(0)  
     # Sets the pen size
     turtle.pensize(2)
 
     # Lifts the pen to move without drawing
     turtle.penup()  
 
-    # Move turtle to a position slightly left and down from center
-    # (so the fractal will appear more centered on screen)
-    turtle.goto(-200, -150)
+    # Move turtle so the first side is centered horizontally:
+    # start at the left end of the first side, facing east
+    turtle.goto(-length/2, -length/2)
 
     # Ensure the turtle faces east before drawing
     turtle.setheading(0)
@@ -149,7 +149,7 @@ def main():
     sides, length, depth = user_input()
     
     # Calls a function to set up the turtle window
-    turtle_Setup()
+    turtle_Setup(length)              # <— pass length so setup can center correctly
 
     # Calls a function to draw the pattern with the correct values 
     draw_pattern(sides, length, depth)
