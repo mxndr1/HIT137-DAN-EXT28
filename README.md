@@ -46,13 +46,10 @@ HIT137-DAN-EXT28/
 │   │
 │   ├── Q2/
 │   │   ├── HIT137_DANEXT28_A2_Q2.py
-│   │   └── temperatures/ (multiple CSV files for each year)
+│   │   └── temperatures (multiple CSV files for each year)
 │   │
 │   ├── Q3/
-│   │   ├── HIT137_DANEXT28_A2_Q3.py
-│   │   └── assets/
-│   │       ├── image1.jpg
-│   │       └── image2.jpg
+│   │   └── HIT137_DANEXT28_A2_Q3.py
 │   │
 │   └── HIT137 Assignment 2 S1 2025.pdf
 │
@@ -65,8 +62,9 @@ HIT137-DAN-EXT28/
 │   ├── gui/
 │   │   └── views.py
 │   ├── docs/
-│   │   └── screenshots, explanations
-│   ├── github_link.txt
+│   │   ├── model_info.md
+│   │   └── oop_explained.md
+│   ├── requirements.txt
 │   └── HIT137 Assignment 3 S1 2025.pdf
 │
 └── README.md
@@ -108,7 +106,7 @@ This Python program uses a recursive function with the `turtle` graphics library
 
 ## Assignment 3 Overview
 
-This assignment is worth **30%** of the overall grade. The task is to design a **Tkinter GUI** that demonstrates object-oriented programming concepts and integrates Hugging Face AI models.
+The task is to design a **Tkinter GUI** that demonstrates object-oriented programming concepts and integrates Hugging Face AI models.
 
 ### Requirements
 * The GUI must show clear examples of:
@@ -126,13 +124,9 @@ This assignment is worth **30%** of the overall grade. The task is to design a *
   * A section for showing information about the chosen models.  
   * Standard navigation widgets (buttons, drop-downs, etc.).  
 
-### Deliverables
+
 * The code is split into multiple files (`app_main.py`, `core/`, `gui/`, etc.) rather than being in one file.  
-* A text file (`github_link.txt`) includes the link to this repository.  
-* Final submission requires a zipped package of:  
-  * All program files  
-  * Outputs  
-  * `github_link.txt`  
+
 
 ### Key Learning
 * How to design and structure a Python GUI application.  
