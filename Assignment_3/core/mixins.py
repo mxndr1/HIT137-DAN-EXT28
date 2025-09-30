@@ -1,3 +1,15 @@
+'''
+
+Group Name: DAN/EXT 28
+
+Group Members:
+FATEEN RAHMAN - s387983
+HENDRICK DANG (VAN HOI DANG)- s395598
+KEVIN ZHU (JIAWEI ZHU) - s387035
+MEHRAAB FERDOUSE - s393148
+
+'''
+
 """
 Small mixins used by adapters.
 
