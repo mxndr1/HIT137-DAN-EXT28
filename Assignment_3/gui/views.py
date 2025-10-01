@@ -74,7 +74,7 @@ class App(tk.Tk):
         """Set up the window, theme, widgets, shortcuts, and initial screen."""
         super().__init__()
         self.title("Tkinter AI GUI")        # set window title bar text
-        self.geometry("1080x740")           # set a starting size that fits both columns well
+        self.state('zoomed')          # set a starting size that fits both columns well
         self.configure(bg=BG)               # apply dark background to root
 
         # Simple state
