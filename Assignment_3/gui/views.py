@@ -388,7 +388,12 @@ class App(tk.Tk):
     def _run_gpt2(self):
         """Generate new text from the prompt and replace the Output box."""
         prompt = self.prompt_text.get("1.0", "end").strip()   # read everything from the prompt, trim spaces
-
+        
+        if not prompt:
+            messagebox.showwarning("Input Required", "You need to fill your text before generating.")
+            self.status.set("No prompt provided.")
+            return
+    
         def work():
             return self.gpt2.run(prompt)                      # ask the adapter to generate text
 
