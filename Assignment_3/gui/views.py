@@ -415,6 +415,11 @@ class App(tk.Tk):
         """Continue the current output and append more text."""
         # If Output is empty, fall back to the prompt text as the seed
         current = self.output.get("1.0", "end").strip() or self.prompt_text.get("1.0", "end").strip()
+        
+        if not current:
+            messagebox.showwarning("Input Required", "You need to fill your text before generating more.")
+            self.status.set("No prompt provided.")
+            return
 
         def work():
             return self.gpt2.run(current)                     # ask the adapter to continue from current text
